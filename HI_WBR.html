@@ -1536,165 +1536,21 @@ function triggerAutosave(){
 }
 
 // ═══════════════════════════════════════════════════════
-// GOOGLE SHEETS SYNC
+// GOOGLE SHEETS SYNC via Apps Script
 // ═══════════════════════════════════════════════════════
-const SHEETS_CONFIG = {
-  spreadsheetId: '1EC4MTE91bd_zcWCnPhCqv73AR-fp2iINou04dV2qRnY',
-  sheetName: 'WBR',
-  credentials: {
-    client_email: 'wbr-sheets@wbr-hi-logistics.iam.gserviceaccount.com',
-    private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDYxNjnSDSyqz/U\nK1oS3k2pPuL+RSV3vPSi3jvGQrBYCh1HKen5lcgQikdDce1yaYFzGlPRj4gy92x8\nB3zknHBSkKjyKCgc3eKxh2nfrDnqledo48KymkTu0Q7n19czgIpTJI+u9+3bYHhA\nThV4aj5rC28oeFqFIbrPNUIoBxXTHibi0HEMW8hEAmAIkLfsJ74VP0/DafUH8ZDq\nVOqxdeao1Bjua9I01dvEUPGYdFhtEhwWYs4iLTHvtlUtRAULDocEdVBQz276X1pB\nmPKIeZs4ZNCq2+zoRXOMqqLKaJZdutisKKXeiUccxzwkiL3ssBoYEp6QlPCUjOvr\n0+YTFk4VAgMBAAECggEABhwkTf6Vx6x2h90x9IKyFzFn1gluaS3ZCmcvsaKrFEwy\nr5ERoICVi0vOfurs6bLqHGuzTZ6ZVPBu7R8L6Oi07MrZjDvQB6JEc8MQm6af2kof\n4++5iu24wC+B10yY6wF2RKos555i5LJXKV7aEZMTD9Labv5XdNWyzYjfhL/QYGs1\nnPpD6mB/JgWNkkYmCZTG7cEGgE+F9Rpim7yRcvdaHKjQZQFU7sB6hcT8t4pOyTlg\nxJxPS7Om9gwRRQKAO+XeX2Kt3wlcKNM44xIcrVpRjUD2Us+AIFFpdAN6q1hMJTAN\nhnKbP3F3z9PBGxw2el8DlZF2tGaz2ibftikPTBiUiQKBgQD0T7uBft+tr5j1UMIh\ng0URi+wNfk8txA65yVR9xYUj3KxfV22YbNDz18kzeN33JFrxTvuLp8a+bU6nNuWL\ntEPfeW4ObTUPDdcxd92iT0kiXQ20N+GllfNvsoeywVyVuBNrgigcBI527ieIWyfU\nV4nToXHe+2vaL0LgVqve9U2rXQKBgQDjI8fc7ZIQ4FP+IF+A7pNm/1YQgZfiB3NR\n5dYYy9EDp0RwaFzaUdqHyAMMzQW41I8eB950ikZ8JK7v89ZH8p2TuZXk+RYRmR7X\nJ+Zg9luM6ChLJh9S9AInIdQgh5Q7emxBi2ifdrkxW7ByFO6jK4ygQTJumUvWSTHP\n2Rgqbwu6GQKBgBfHpv2cxtLWE7JVEQBIEbH6h5hsofJXcgN9aD7xudrawOBq1x0O\nAmyppUjgS+KhZES2pl9ajkq8wvodqswlWLHo1OCMmqyDcV28SBNjWkABBLN0+P6w\nEMjffLvWfFeKWkGNoq/Pdbp3xdtM3BycBKtXvIiyujW7gevqI8KI5+11AoGBAIgZ\nd3dsrpoIIKvj7/XMfmw30PUBAeYAutu20Ot4rNv4jOyhzAlRBJVZhmJUMvqF+t9u\nrZ+8/vEB9gR3Yc0olbzfde6GRe/zhOQ81zEATOkIbqRgymIlLWkPPxDizDI7b8Ry\naRUryVnG69nfqwIAZTnc9wAIQMW8g+lb1rwOX8N5AoGAMwZ4x82KrANBmAED/n4t\nya7aAZp7sH2o/R/no4eKdeBRNwLD3/iGl4B9EoaIX0vncBhQTVRRWmEAbi50BtNb\nRuUI5S/uSXWwYrHbdTPVzk2VL38N8Yj0sQbZY9lsNGovJOKFiUR+fuIWtKZL/pH8\nd1mRjmGEtxZYSCQNFUIco7k=\n-----END PRIVATE KEY-----\n'
-  }
-};
-
-async function getGoogleToken(){
-  try{
-    const header={alg:'RS256',typ:'JWT'};
-    const now=Math.floor(Date.now()/1000);
-    const claim={iss:SHEETS_CONFIG.credentials.client_email,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now};
-    const b64=obj=>btoa(JSON.stringify(obj)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const unsigned=b64(header)+'.'+b64(claim);
-    // Import key
-    const keyData=SHEETS_CONFIG.credentials.private_key.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g,'');
-    const binaryKey=Uint8Array.from(atob(keyData),c=>c.charCodeAt(0));
-    const cryptoKey=await crypto.subtle.importKey('pkcs8',binaryKey,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
-    const signature=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',cryptoKey,new TextEncoder().encode(unsigned));
-    const sig=btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const jwt=unsigned+'.'+sig;
-    const resp=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`});
-    const data=await resp.json();
-    return data.access_token||null;
-  }catch(e){console.error('Token error',e);return null;}
-}
-
-function recToSheetRow(week, rec){
-  // Cabeceras fijas
-  const row=[week];
-  // Fechas días 1-5
-  for(let i=1;i<=5;i++) row.push(rec['day-date-'+i]||'');
-  // Ciclo de caja
-  ['cc-cob-est','cc-cob-real','cc-pag-est','cc-pag-real','cc-dem','cc-deu'].forEach(p=>{
-    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
-  });
-  // Alertas
-  ['a-fvr','a-rsp','a-fcr','a-fca','a-ppa','a-inc'].forEach(p=>{
-    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
-  });
-  // Otros
-  ['fr-trab','fr-otros','tc-trab','tc-otros'].forEach(p=>{
-    for(let i=1;i<=5;i++) row.push(rec[p+'-'+i]||'');
-    row.push(rec[p+'-com']||'');
-  });
-  // Plazos fiscales
-  ['pf-tcf','pf-pfp'].forEach(k=>{
-    row.push(rec[k]||'');row.push(rec[k+'-fecha']||'');row.push(rec[k+'-st']||'');row.push(rec[k+'-com']||'');
-  });
-  // Operativas (hasta 10)
-  for(let ci=0;ci<10;ci++){
-    row.push(rec['fc-name-'+ci]||'');
-    for(let i=1;i<=5;i++){
-      ['fc-emi','ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>{
-        row.push(rec[p+'-'+ci+'-'+i]||'');
-      });
-    }
-    row.push(rec['fc-emi-com-'+ci]||'');
-    row.push(rec['ef-dias-com-'+ci]||'');
-    row.push(rec['te-mpf-avg-'+ci]||'');
-  }
-  // Anticipos (JSON)
-  row.push(JSON.stringify(rec.anticipos||[]));
-  // Viajes (JSON)
-  row.push(JSON.stringify(rec.viajes||[]));
-  // Admin (JSON)
-  row.push(JSON.stringify(rec.admin||[]));
-  // Minuta
-  row.push(rec['m-resumen']||'');
-  row.push(rec['m-pos']||'');
-  row.push(rec['m-mej']||'');
-  row.push(rec['m-ale']||'');
-  row.push(rec['m-foc']||'');
-  return row;
-}
-
-function sheetHeaders(){
-  const h=['Semana'];
-  for(let i=1;i<=5;i++) h.push('Fecha_Dia'+i);
-  ['cc-cob-est','cc-cob-real','cc-pag-est','cc-pag-real','cc-dem','cc-deu'].forEach(p=>{
-    for(let i=1;i<=5;i++){h.push(p+'_d'+i);h.push(p+'_com_d'+i);}
-  });
-  ['a-fvr','a-rsp','a-fcr','a-fca','a-ppa','a-inc'].forEach(p=>{
-    for(let i=1;i<=5;i++){h.push(p+'_d'+i);h.push(p+'_com_d'+i);}
-  });
-  ['fr-trab','fr-otros','tc-trab','tc-otros'].forEach(p=>{
-    for(let i=1;i<=5;i++) h.push(p+'_d'+i);
-    h.push(p+'_com');
-  });
-  ['pf-tcf','pf-pfp'].forEach(k=>{
-    h.push(k);h.push(k+'_fecha');h.push(k+'_st');h.push(k+'_com');
-  });
-  for(let ci=0;ci<10;ci++){
-    h.push('Op'+ci+'_nombre');
-    for(let i=1;i<=5;i++){
-      ['fc-emi','ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>{
-        h.push('Op'+ci+'_'+p+'_d'+i);
-      });
-    }
-    h.push('Op'+ci+'_fc-emi-com');
-    h.push('Op'+ci+'_ef-dias-com');
-    h.push('Op'+ci+'_te-mpf-avg');
-  }
-  h.push('Anticipos_JSON');
-  h.push('Viajes_JSON');
-  h.push('Admin_JSON');
-  h.push('Resumen');h.push('Positivos');h.push('Mejoras');h.push('Alertas');h.push('Foco');
-  return h;
-}
-
-function sheetsRange(range){
-  // Formato correcto: Hoja1!A1 sin encodear el !
-  return `${SHEETS_CONFIG.spreadsheetId}/values/${SHEETS_CONFIG.sheetName}!${range}`;
-}
-
-async function ensureSheetHeaders(token){
-  try{
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${sheetsRange('A1')}?majorDimension=ROWS`;
-    const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-    const d=await r.json();
-    if(!d.values||!d.values[0]||d.values[0][0]!=='Semana'){
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsRange('A1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{
-        method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({values:[sheetHeaders()]})
-      });
-    }
-  }catch(e){console.error('Header error',e);}
-}
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl5NSFVTh-ZcdfGQrvEGUSwOFCrnhgOTKSwDcc9yy7FQ7O1fKCtXWp23nDjylvZPpL1g/exec';
 
 async function syncToSheets(week, rec){
   try{
-    const token=await getGoogleToken();
-    if(!token){console.warn('No token Sheets');return;}
-    await ensureSheetHeaders(token);
-    // Buscar si ya existe fila con esta semana
-    const readResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsRange('A:A')}`,{headers:{Authorization:'Bearer '+token}});
-    const readData=await readResp.json();
-    const rows=readData.values||[];
-    let existingRow=-1;
-    rows.forEach((r,idx)=>{if(r[0]===week)existingRow=idx+1;});
-    const rowData=[recToSheetRow(week,rec)];
-    if(existingRow>0){
-      // Actualizar fila existente
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsRange('A'+existingRow)}?valueInputOption=RAW`,{
-        method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({values:rowData})
-      });
-    } else {
-      // Añadir fila nueva
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsRange('A1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{
-        method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({values:rowData})
-      });
-    }
-    console.log('Sheets sync OK →',week);
+    const row = recToSheetRow(week, rec);
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({row})
+    });
+    const data = await resp.json();
+    if(data.ok) console.log('Sheets sync OK →', week);
+    else console.error('Sheets sync error:', data.error);
   }catch(e){console.error('Sheets sync error',e);}
 }
 
