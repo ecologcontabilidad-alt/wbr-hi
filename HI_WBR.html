@@ -1545,7 +1545,7 @@ async function syncToSheets(week, rec){
     const row = recToSheetRow(week, rec);
     const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({row})
     });
     const data = await resp.json();
