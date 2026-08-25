@@ -1538,14 +1538,14 @@ function triggerAutosave(){
 // ═══════════════════════════════════════════════════════
 // GOOGLE SHEETS SYNC via Apps Script
 // ═══════════════════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl5NSFVTh-ZcdfGQrvEGUSwOFCrnhgOTKSwDcc9yy7FQ7O1fKCtXWp23nDjylvZPpL1g/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1m79qt2iXuN_dyomdqC_19TYuOVXEE3U0KsKFKJdjYugYkTEjxTAMsdZgwAJMtfDzSw/exec';
 
 async function syncToSheets(week, rec){
   try{
     const row = recToSheetRow(week, rec);
     const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: {'Content-Type': 'text/plain'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({row})
     });
     const data = await resp.json();
