@@ -1553,6 +1553,43 @@ async function syncToSheets(week, rec){
     else console.error('Sheets sync error:', data.error);
   }catch(e){console.error('Sheets sync error',e);}
 }
+function recToSheetRow(week, rec){
+  const row=[week];
+  for(let i=1;i<=5;i++) row.push(rec['day-date-'+i]||'');
+  ['cc-cob-est','cc-cob-real','cc-pag-est','cc-pag-real','cc-dem','cc-deu'].forEach(p=>{
+    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
+  });
+  ['a-fvr','a-rsp','a-fcr','a-fca','a-ppa','a-inc'].forEach(p=>{
+    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
+  });
+  ['fr-trab','fr-otros','tc-trab','tc-otros'].forEach(p=>{
+    for(let i=1;i<=5;i++) row.push(rec[p+'-'+i]||'');
+    row.push(rec[p+'-com']||'');
+  });
+  ['pf-tcf','pf-pfp'].forEach(k=>{
+    row.push(rec[k]||'');row.push(rec[k+'-fecha']||'');row.push(rec[k+'-st']||'');row.push(rec[k+'-com']||'');
+  });
+  for(let ci=0;ci<10;ci++){
+    row.push(rec['fc-name-'+ci]||'');
+    for(let i=1;i<=5;i++){
+      ['fc-emi','ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>{
+        row.push(rec[p+'-'+ci+'-'+i]||'');
+      });
+    }
+    row.push(rec['fc-emi-com-'+ci]||'');
+    row.push(rec['ef-dias-com-'+ci]||'');
+    row.push(rec['te-mpf-avg-'+ci]||'');
+  }
+  row.push(JSON.stringify(rec.anticipos||[]));
+  row.push(JSON.stringify(rec.viajes||[]));
+  row.push(JSON.stringify(rec.admin||[]));
+  row.push(rec['m-resumen']||'');
+  row.push(rec['m-pos']||'');
+  row.push(rec['m-mej']||'');
+  row.push(rec['m-ale']||'');
+  row.push(rec['m-foc']||'');
+  return row;
+}
 
 async function saveWBR(){
   if(!currentWeek){toast('Selecciona o crea una semana primero');return;}
