@@ -1546,18 +1546,34 @@ function triggerAutosave(){
 // ═══════════════════════════════════════════════════════
 // GOOGLE SHEETS SYNC via Apps Script
 // ═══════════════════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTob5WZz2U1najTzAg9TnfUWQJQJre6TczuuNcBGXat8oh3WCSdPXQo25mmk7YBh5-Zg/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAYhmJUI6C9uExaZXiMKCoprU7jzYB7qou9w7IfyAR-OtEQMX9lXo1bXh8X2LqXNtemQ/exec';
 
-async function syncToSheets(week, rec){
+async function syncToSheets(){
   try{
-    const row = recToSheetRow(week, rec);
+    // Recoger nombres únicos de anticipos de todo el histórico
+    const anticipoNames = [];
+    Object.values(wbrData).forEach(r=>{
+      (r.anticipos||[]).forEach(a=>{
+        if(a.name && !anticipoNames.includes(a.name)) anticipoNames.push(a.name);
+      });
+    });
+
+    const payload = {
+      config: {
+        operativas: config.operativas || [],
+        viajeros: config.viajeros || [],
+        anticipos: anticipoNames
+      },
+      wbrData: wbrData
+    };
+
     const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({row})
+      body: JSON.stringify(payload)
     });
     const data = await resp.json();
-    if(data.ok) console.log('Sheets sync OK →', week);
+    if(data.ok) console.log('Sheets sync OK');
     else console.error('Sheets sync error:', data.error);
   }catch(e){console.error('Sheets sync error',e);}
 }
@@ -1637,7 +1653,7 @@ async function saveWBR(){
   if(ok){toast('WBR guardado ✓ — '+currentWeek);populateWeekSelector();document.getElementById('wbr-week-sel').value=currentWeek;}
   else{toast('Guardado localmente (sin Firebase)');}
   // Sync a Google Sheets (en paralelo, no bloquea)
-  syncToSheets(currentWeek, rec).catch(e=>console.error('Sheets error',e));
+  syncToSheets().catch(e=>console.error('Sheets error',e));
 }
 
 // ═══════════════════════════════════════════════════════
