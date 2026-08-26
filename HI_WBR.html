@@ -1434,6 +1434,14 @@ function collectWBR(){
     admins.push({tipo:document.getElementById('admin-tipo-'+idx)?.value||'',entidad:document.getElementById('admin-ent-'+idx)?.value||'',fecha:document.getElementById('admin-fecha-'+idx)?.value||'',dias:document.getElementById('admin-dias-'+idx)?.value||'',prioridad:document.getElementById('admin-prio-'+idx)?.value||'Alta',estado:document.getElementById('admin-st-'+idx)?.value||'🟡 Pendiente'});
   });
   rec.admin=admins;
+  // Minuta
+  ['m-resumen','m-pos','m-mej','m-ale','m-foc'].forEach(k=>{
+    rec[k]=document.getElementById(k)?.value||'';
+  });
+  // KPIs
+  ['m-kpi-envios','m-kpi-sla','m-kpi-inc','m-kpi-nps'].forEach(k=>{
+    rec[k]=document.getElementById(k)?.value||'';
+  });
   return rec;
 }
 
@@ -1588,6 +1596,10 @@ function recToSheetRow(week, rec){
   row.push(rec['m-mej']||'');
   row.push(rec['m-ale']||'');
   row.push(rec['m-foc']||'');
+  row.push(rec['m-kpi-envios']||'');
+  row.push(rec['m-kpi-sla']||'');
+  row.push(rec['m-kpi-inc']||'');
+  row.push(rec['m-kpi-nps']||'');
   return row;
 }
 
