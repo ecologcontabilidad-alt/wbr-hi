@@ -1546,7 +1546,7 @@ function triggerAutosave(){
 // ═══════════════════════════════════════════════════════
 // GOOGLE SHEETS SYNC via Apps Script
 // ═══════════════════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1m79qt2iXuN_dyomdqC_19TYuOVXEE3U0KsKFKJdjYugYkTEjxTAMsdZgwAJMtfDzSw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTob5WZz2U1najTzAg9TnfUWQJQJre6TczuuNcBGXat8oh3WCSdPXQo25mmk7YBh5-Zg/exec';
 
 async function syncToSheets(week, rec){
   try{
@@ -1562,44 +1562,70 @@ async function syncToSheets(week, rec){
   }catch(e){console.error('Sheets sync error',e);}
 }
 function recToSheetRow(week, rec){
-  const row=[week];
+  const row = [];
+
+  // ── SEMANA ──
+  row.push(week);
+
+  // ── FECHAS L-V ──
+  const diasLabel = ['Lun','Mar','Mié','Jue','Vie'];
   for(let i=1;i<=5;i++) row.push(rec['day-date-'+i]||'');
-  ['cc-cob-est','cc-cob-real','cc-pag-est','cc-pag-real','cc-dem','cc-deu'].forEach(p=>{
-    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
+
+  // ── CICLO DE CAJA ──
+  const ccMap = {
+    'cc-cob-est': 'Cobros Est.',
+    'cc-cob-real': 'Cobros Real',
+    'cc-pag-est': 'Pagos Est.',
+    'cc-pag-real': 'Pagos Real',
+    'cc-dem': 'Demora Cobro',
+    'cc-deu': 'Deuda'
+  };
+  Object.keys(ccMap).forEach(p=>{
+    for(let i=1;i<=5;i++) row.push(rec[p+'-'+i]||'');
+    row.push(rec[p+'-com-1']||''); // comentario (1 por métrica)
   });
-  ['a-fvr','a-rsp','a-fcr','a-fca','a-ppa','a-inc'].forEach(p=>{
-    for(let i=1;i<=5;i++){row.push(rec[p+'-'+i]||'');row.push(rec[p+'-com-'+i]||'');}
-  });
-  ['fr-trab','fr-otros','tc-trab','tc-otros'].forEach(p=>{
+
+  // ── FACTURACIÓN RECIBIDA ──
+  ['fr-trab','fr-otros'].forEach(p=>{
     for(let i=1;i<=5;i++) row.push(rec[p+'-'+i]||'');
     row.push(rec[p+'-com']||'');
   });
-  ['pf-tcf','pf-pfp'].forEach(k=>{
-    row.push(rec[k]||'');row.push(rec[k+'-fecha']||'');row.push(rec[k+'-st']||'');row.push(rec[k+'-com']||'');
-  });
+
+  // ── FACTURACIÓN EMITIDA (operativas) ──
   for(let ci=0;ci<10;ci++){
-    row.push(rec['fc-name-'+ci]||'');
-    for(let i=1;i<=5;i++){
-      ['fc-emi','ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>{
-        row.push(rec[p+'-'+ci+'-'+i]||'');
-      });
-    }
+    const nombre = rec['fc-name-'+ci]||'';
+    if(!nombre) continue;
+    row.push(nombre);
+    for(let i=1;i<=5;i++) row.push(rec['fc-emi-'+ci+'-'+i]||'');
     row.push(rec['fc-emi-com-'+ci]||'');
-    row.push(rec['ef-dias-com-'+ci]||'');
-    row.push(rec['te-mpf-avg-'+ci]||'');
   }
-  row.push(JSON.stringify(rec.anticipos||[]));
-  row.push(JSON.stringify(rec.viajes||[]));
-  row.push(JSON.stringify(rec.admin||[]));
-  row.push(rec['m-resumen']||'');
-  row.push(rec['m-pos']||'');
-  row.push(rec['m-mej']||'');
-  row.push(rec['m-ale']||'');
-  row.push(rec['m-foc']||'');
-  row.push(rec['m-kpi-envios']||'');
-  row.push(rec['m-kpi-sla']||'');
-  row.push(rec['m-kpi-inc']||'');
-  row.push(rec['m-kpi-nps']||'');
+
+  // ── ANTICIPOS ──
+  (rec.anticipos||[]).forEach(a=>{
+    row.push(a.name||'');
+    const days = Array.isArray(a.days) ? a.days : Object.values(a.days||{});
+    days.forEach(v => row.push(v||''));
+  });
+
+  // ── VIAJES ──
+  (rec.viajes||[]).forEach(v=>{
+    row.push(v.viajero||'');
+    row.push(v.tipo||'');
+    row.push(v.fecha||'');
+    row.push(v.tiempo||'');
+    row.push(v.estado||'');
+  });
+
+  // ── ADMINISTRACIÓN ──
+  (rec.admin||[]).forEach(a=>{
+    row.push(a.tipo||'');
+    row.push(a.entidad||'');
+    row.push(a.fecha||'');
+    row.push(a.dias||'');
+    row.push(a.prioridad||'');
+    row.push(a.estado||'');
+  });
+
   return row;
 }
 
