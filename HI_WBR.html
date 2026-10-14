@@ -936,8 +936,13 @@ async function connectFirebase(){
     // Escuchar cambios posteriores en tiempo real
     db.ref('wbr').on('child_added',snap=>{
       if(!snap.exists())return;
-      if(!wbrData[snap.key]) wbrData[snap.key]=snap.val(); // solo si no está ya
+      wbrData[snap.key]=snap.val();
       populateWeekSelector();
+      // If this week is shown in selector but not yet loaded, load it
+      const sel=document.getElementById('wbr-week-sel');
+      if(sel && sel.value===snap.key && snap.key!==currentWeek){
+        loadWeek(snap.key);
+      }
     });
     db.ref('wbr').on('child_changed',snap=>{
       if(!snap.exists())return;
@@ -1142,6 +1147,11 @@ function populateWeekSelector(){
     const opt=document.createElement('option');
     opt.value=currentWeek;opt.textContent=currentWeek+' (sin guardar)';opt.selected=true;
     sel.insertBefore(opt,sel.options[1]);
+  }
+  // Auto-load: if a week is selected but no data shown yet, load it
+  const selVal = sel.value;
+  if(selVal && wbrData[selVal] && selVal !== currentWeek){
+    loadWeek(selVal);
   }
 }
 
@@ -1441,9 +1451,9 @@ function restoreRecord(rec){
   });
   // Restore operativas — fallback: detect from fc-name-X keys if rec.operativas missing
   addedOperativas=[];
-  document.getElementById('fac-emi-body').innerHTML='';
-  document.getElementById('efic-body').innerHTML='';
-  document.getElementById('temision-body').innerHTML='';
+  (document.getElementById('fac-emi-body')||{innerHTML:''}).innerHTML='';
+  (document.getElementById('efic-body')||{innerHTML:''}).innerHTML='';
+  (document.getElementById('temision-body')||{innerHTML:''}).innerHTML='';
   let ops = rec.operativas;
   if(!ops || !ops.length){
     // Rebuild from fc-name-0, fc-name-1... keys in the record
@@ -1468,7 +1478,7 @@ function restoreRecord(rec){
     ['ef-dias'].forEach(p=>calcAvgOp(p,ci));['te-rev','te-men','te-env','te-hol'].forEach(p=>calcTotOp(p,ci));
   });
   // Anticipos
-  document.getElementById('anticipo-body').innerHTML='';counterAnt=0;
+  (document.getElementById('anticipo-body')||{innerHTML:''}).innerHTML='';counterAnt=0;
   (rec.anticipos||[]).forEach(a=>{
     addAnticipoRow();const idx=counterAnt-1;
     set('ant-name-'+idx,a.name);
@@ -1477,10 +1487,10 @@ function restoreRecord(rec){
     calcTotOp('ant',idx);
   });
   // Viajes
-  document.getElementById('viajes-body').innerHTML='';counterViaje=0;
+  (document.getElementById('viajes-body')||{innerHTML:''}).innerHTML='';counterViaje=0;
   (rec.viajes||[]).forEach(vj=>{addViajeRow();const idx=counterViaje-1;set('viaje-v-'+idx,vj.viajero);set('viaje-tipo-'+idx,vj.tipo);set('viaje-fecha-'+idx,vj.fecha);set('viaje-min-'+idx,vj.tiempo);set('viaje-st-'+idx,vj.estado);});
   // Admin
-  document.getElementById('admin-body').innerHTML='';counterAdmin=0;
+  (document.getElementById('admin-body')||{innerHTML:''}).innerHTML='';counterAdmin=0;
   (rec.admin||[]).forEach(a=>{addAdminRow();const idx=counterAdmin-1;set('admin-tipo-'+idx,a.tipo);set('admin-ent-'+idx,a.entidad);set('admin-fecha-'+idx,a.fecha);set('admin-dias-'+idx,a.dias);set('admin-prio-'+idx,a.prioridad);set('admin-st-'+idx,a.estado);});
 }
 
@@ -1490,12 +1500,9 @@ function clearAll(){
   document.querySelectorAll('.tot-td').forEach(el=>el.textContent='—');
   // Limpiar textareas de notas (nota...) — se cargan de la semana anterior si no se resetean
   document.querySelectorAll('textarea[id$="-com-1"],textarea[id$="-com-2"],textarea[id$="-com-3"],textarea[id$="-com-4"],textarea[id$="-com-5"]').forEach(el=>el.value='');
-  document.getElementById('anticipo-body').innerHTML='';
-  document.getElementById('admin-body').innerHTML='';
-  document.getElementById('viajes-body').innerHTML='';
-  document.getElementById('fac-emi-body').innerHTML='';
-  document.getElementById('efic-body').innerHTML='';
-  document.getElementById('temision-body').innerHTML='';
+  ['anticipo-body','admin-body','viajes-body','fac-emi-body','efic-body','temision-body'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML='';
+  });
   counterAnt=0;counterViaje=0;counterAdmin=0;
   addedOperativas=[];
   ['pf-tcf','pf-pfp'].forEach(k=>{
