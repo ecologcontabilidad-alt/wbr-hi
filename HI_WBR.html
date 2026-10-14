@@ -1262,7 +1262,7 @@ function addFacEmiBlock(op,idx){
   const body=document.getElementById('fac-emi-body');
   const tr=document.createElement('tr');
   tr.id='fac-emi-block-'+idx;
-  tr.innerHTML=`<td class="row-label" style="font-weight:600;color:var(--text)">${op}</td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="fc-emi-tot-${idx}">—</td><td class="day-td"><input class="day-input" id="fc-emi-com-${idx}" type="text" placeholder="..." style="text-align:left;font-size:11px"></td>`;
+  tr.innerHTML=`<td class="row-label" style="font-weight:600;color:var(--text)">${op}</td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx});hideEmptyOpRows()"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx});hideEmptyOpRows()"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx});hideEmptyOpRows()"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx});hideEmptyOpRows()"></td><td class="day-td"><input class="day-input" id="fc-emi-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('fc-emi',${idx});calcMinFac(${idx});hideEmptyOpRows()"></td><td class="tot-td" id="fc-emi-tot-${idx}">—</td><td class="day-td"><input class="day-input" id="fc-emi-com-${idx}" type="text" placeholder="..." style="text-align:left;font-size:11px"></td>`;
   body.appendChild(tr);
 }
 
@@ -1275,6 +1275,31 @@ function addEficBlock(op,idx){
   divT.innerHTML=`<table class="wbr-table" style="margin-bottom:1px"><thead><tr><th class="row-th" style="background:#2A2A2A">${op}</th><th class="day-th">Lun</th><th class="day-th">Mar</th><th class="day-th">Mié</th><th class="day-th">Jue</th><th class="day-th">Vie</th><th class="tot-th">Total</th></tr></thead><tbody><tr><td class="row-label">Revisión (min)</td><td class="day-td"><input class="day-input" id="te-rev-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-rev-tot-${idx}">—</td></tr><tr><td class="row-label">Mensatrans (min)</td><td class="day-td"><input class="day-input" id="te-men-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-men-tot-${idx}">—</td></tr><tr><td class="row-label">Envío (min)</td><td class="day-td"><input class="day-input" id="te-env-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-env-tot-${idx}">—</td></tr><tr><td class="row-label">Holded (min)</td><td class="day-td"><input class="day-input" id="te-hol-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-hol-tot-${idx}">—</td></tr><tr style="background:var(--blue-bg)"><td class="row-label" style="font-weight:600;color:var(--blue)">⚡ min / factura</td><td class="tot-td" id="te-mpf-${idx}-1" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-2" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-3" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-4" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-5" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-avg-${idx}" style="color:var(--blue);font-weight:700">—</td></tr></tbody></table>`;
   bodyTe.appendChild(divT);
 }
+
+function hideEmptyOpRows(){
+  // Hide operativa rows where all 5 days of fc-emi are empty/zero
+  addedOperativas.forEach((_,idx)=>{
+    let hasData = false;
+    for(let i=1;i<=5;i++){
+      const el = document.getElementById('fc-emi-'+idx+'-'+i);
+      if(el && el.value && el.value.trim()!=='' && el.value!=='0') { hasData=true; break; }
+    }
+    // Also check temision data
+    if(!hasData){
+      ['te-rev','te-men','te-env','te-hol'].forEach(p=>{
+        for(let i=1;i<=5;i++){
+          const el=document.getElementById(p+'-'+idx+'-'+i);
+          if(el&&el.value&&el.value.trim()!==''&&el.value!=='0'){hasData=true;}
+        }
+      });
+    }
+    const facRow = document.getElementById('fac-emi-block-'+idx);
+    const teBlock = document.getElementById('temision-block-'+idx);
+    if(facRow) facRow.style.display = hasData ? '' : 'none';
+    if(teBlock) teBlock.style.display = hasData ? '' : 'none';
+  });
+}
+window.hideEmptyOpRows = hideEmptyOpRows;
 
 function calcAvgOp(prefix,idx){
   let sum=0,cnt=0;
@@ -1503,6 +1528,7 @@ function restoreRecord(rec){
   // Admin
   (document.getElementById('admin-body')||{innerHTML:''}).innerHTML='';counterAdmin=0;
   (rec.admin||[]).forEach(a=>{addAdminRow();const idx=counterAdmin-1;set('admin-tipo-'+idx,a.tipo);set('admin-ent-'+idx,a.entidad);set('admin-fecha-'+idx,a.fecha);set('admin-dias-'+idx,a.dias);set('admin-prio-'+idx,a.prioridad);set('admin-st-'+idx,a.estado);});
+  setTimeout(hideEmptyOpRows, 150);
 }
 
 function clearAll(){
