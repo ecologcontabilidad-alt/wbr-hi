@@ -2901,10 +2901,24 @@ window.stopTimer=stopTimer;
 
 // ── EXPORTAR PDF ──────────────────────────────────────────────
 function exportPDF(modo){
+  // Capturar selecciones ANTES de cualquier show() que pueda resetearlas
+  const _mSel = document.getElementById('mbr-month');
+  const _cSel = document.getElementById('mbr-compare');
+  const _savedMonth = _mSel ? _mSel.value : '';
+  const _savedComp  = _cSel ? _cSel.value : '';
+
   if(modo==='wbr'){
     show('wbr-res');
   } else if(modo==='mbr'){
-    show('mbr');
+    // NO llamar show('mbr') — dispara calcMBR/populateWeekMonth que resetea el selector
+    // Activar la sección visualmente sin recalcular
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+    const secMbr = document.getElementById('sec-mbr');
+    if(secMbr) secMbr.classList.add('active');
+    // Restaurar y recalcular con el mes correcto
+    if(_savedMonth && _mSel) _mSel.value = _savedMonth;
+    if(_savedComp  && _cSel) _cSel.value = _savedComp;
+    calcMBR();
   }
   if(modo==='wbr'){
     const mainSel=document.getElementById('wbr-res-main');
@@ -2942,6 +2956,12 @@ function exportPDF(modo){
       if(document.getElementById('print-header-wbr'))document.getElementById('print-header-wbr').style.display='none';
       if(document.getElementById('print-header-mbr'))document.getElementById('print-header-mbr').style.display='none';
       document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('print-active');});
+      // Restaurar mes tras imprimir
+      if(modo==='mbr' && _savedMonth){
+        if(document.getElementById('mbr-month')) document.getElementById('mbr-month').value = _savedMonth;
+        if(_savedComp && document.getElementById('mbr-compare')) document.getElementById('mbr-compare').value = _savedComp;
+        calcMBR();
+      }
     },1200);
   },250);
 }
