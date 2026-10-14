@@ -472,20 +472,7 @@ details.card[open] summary{border-bottom-color:var(--border);}
     </div>
   </details>
   <div class="dbr-sub-group">
-    <details class="dbr-block">
-      <summary class="dbr-summary dbr-sub">↳ 🔄 Ciclo de Facturación <span style="font-weight:400;color:var(--text3);font-size:11.5px">(días desde recepción de reporte)</span></summary>
-      <div class="card">
-<div class="table-scroll"><table class="wbr-table" id="efic-table">
-        <thead><tr>
-          <th class="row-th" style="min-width:180px">Operativa</th>
-          <th class="day-th" id="dh-cf-1">Lun</th><th class="day-th" id="dh-cf-2">Mar</th><th class="day-th" id="dh-cf-3">Mié</th><th class="day-th" id="dh-cf-4">Jue</th><th class="day-th" id="dh-cf-5">Vie</th>
-          <th class="tot-th">Prom.</th>
-          <th class="row-th" style="min-width:120px;background:#2A2A2A">Comentario</th>
-        </tr></thead>
-        <tbody id="efic-body"></tbody>
-      </table></div>
-      </div>
-    </details>
+    
     <details class="dbr-block">
       <summary class="dbr-summary dbr-sub" onclick="setTimeout(()=>{addedOperativas.forEach((_,i)=>calcMinFac(i));},50)">↳ ⏱ Tiempo de emisión por operativa</summary>
       <div class="card">
@@ -1256,8 +1243,7 @@ function confirmWbrOp(){
   if(!addedOperativas.includes(op)){
     addedOperativas.push(op);
     addFacEmiBlock(op,addedOperativas.length-1);
-    addEficBlock(op,addedOperativas.length-1);
-  }
+    }
   closeWbrOpModal();
 }
 
@@ -1269,20 +1255,6 @@ function addFacEmiBlock(op,idx){
   body.appendChild(tr);
 }
 
-function addEficBlock(op,idx){
-  // Ciclo de Facturación: una fila por operativa (días cierre)
-  const bodyEfic=document.getElementById('efic-body');
-  const trE=document.createElement('tr');
-  trE.id='efic-block-'+idx;
-  trE.innerHTML=`<td class="row-label" style="font-weight:600;color:var(--text)">${op}</td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-1" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-2" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-3" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-4" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-5" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="tot-td" id="ef-dias-avg-${idx}">—</td><td class="day-td"><input class="day-input" id="ef-dias-com-${idx}" type="text" placeholder="..." style="text-align:left;font-size:11px"></td>`;
-  bodyEfic.appendChild(trE);
-  // Tiempo de emisión: Revisión, Mensatrans, Envío, Holded
-  const bodyTe=document.getElementById('temision-body');
-  const divT=document.createElement('div');
-  divT.className='table-scroll';divT.id='temision-block-'+idx;
-  divT.innerHTML=`<table class="wbr-table" style="margin-bottom:1px"><thead><tr><th class="row-th" style="background:#2A2A2A">${op}</th><th class="day-th">Lun</th><th class="day-th">Mar</th><th class="day-th">Mié</th><th class="day-th">Jue</th><th class="day-th">Vie</th><th class="tot-th">Total</th></tr></thead><tbody><tr><td class="row-label">Revisión (min)</td><td class="day-td"><input class="day-input" id="te-rev-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-rev-tot-${idx}">—</td></tr><tr><td class="row-label">Mensatrans (min)</td><td class="day-td"><input class="day-input" id="te-men-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-men-tot-${idx}">—</td></tr><tr><td class="row-label">Envío (min)</td><td class="day-td"><input class="day-input" id="te-env-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-env-tot-${idx}">—</td></tr><tr><td class="row-label">Holded (min)</td><td class="day-td"><input class="day-input" id="te-hol-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-hol-tot-${idx}">—</td></tr><tr style="background:var(--blue-bg)"><td class="row-label" style="font-weight:600;color:var(--blue)">⚡ min / factura</td><td class="tot-td" id="te-mpf-${idx}-1" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-2" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-3" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-4" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-5" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-avg-${idx}" style="color:var(--blue);font-weight:700">—</td></tr></tbody></table>`;
-  bodyTe.appendChild(divT);
-}
 
 function calcAvgOp(prefix,idx){
   let sum=0,cnt=0;
@@ -1474,7 +1446,7 @@ function restoreRecord(rec){
   document.getElementById('temision-body').innerHTML='';
   (rec.operativas||[]).forEach((op,ci)=>{
     addedOperativas.push(op);
-    addFacEmiBlock(op,ci);addEficBlock(op,ci);
+    addFacEmiBlock(op,ci);
     for(let i=1;i<=5;i++){
       set('fc-emi-'+ci+'-'+i,rec['fc-emi-'+ci+'-'+i]);
       ['ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>set(p+'-'+ci+'-'+i,rec[p+'-'+ci+'-'+i]));
@@ -1623,24 +1595,25 @@ function recToSheetRow(week, rec){
     days.forEach(v => row.push(v||''));
   });
 
-  // ── VIAJES ──
+  // ── VIAJES: one row per viajero, only minutes for the matching day ──
+  // Get the 5 day dates for this week
+  const dayDates = [];
+  for(let i=1;i<=5;i++) dayDates.push(rec['day-date-'+i]||'');
   (rec.viajes||[]).forEach(v=>{
     row.push(v.viajero||'');
-    row.push(v.tipo||'');
-    row.push(v.fecha||'');
-    row.push(v.tiempo||'');
-    row.push(v.estado||'');
+    // For each day L-V: put minutes only if viaje.fecha matches that day, else empty
+    dayDates.forEach(dd => {
+      if(v.fecha && dd && v.fecha === dd) {
+        // Extract numeric minutes from strings like "10min" or "10"
+        const mins = String(v.tiempo||'').replace(/[^0-9]/g,'');
+        row.push(mins||'');
+      } else {
+        row.push('');
+      }
+    });
   });
 
-  // ── ADMINISTRACIÓN ──
-  (rec.admin||[]).forEach(a=>{
-    row.push(a.tipo||'');
-    row.push(a.entidad||'');
-    row.push(a.fecha||'');
-    row.push(a.dias||'');
-    row.push(a.prioridad||'');
-    row.push(a.estado||'');
-  });
+  // Administración: no se exporta al Excel
 
   return row;
 }
@@ -1882,13 +1855,11 @@ function calcMBR(){
   }
 
   // ── CICLO DE FACTURACIÓN
-  let cicloRows='';
   ops.forEach(op=>{
     const ci=(rec.operativas||[]).indexOf(op);
     const ciP=prev?(prev.operativas||[]).indexOf(op):-1;
     const v=ci>=0?avg(rec,'ef-dias-'+ci):null;
     const p2=prev&&ciP>=0?avg(prev,'ef-dias-'+ciP):null;
-    cicloRows+=kpiRow(op+' — días cierre',v,p2,false,'d');
   });
   if(!ops.length)cicloRows='<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin operativas</td></tr>';
 
@@ -2026,7 +1997,6 @@ function calcMBR(){
     <div style="display:flex;flex-direction:column;gap:14px">
       ${section('🧾 Facturación recibida',facRecRowsFull,false)}
       ${section('🧾 Facturación emitida',facEmiRows,false)}
-      ${section('🔄 Ciclo de Facturación',cicloRows,false)}
       ${section('⏱ Tiempo de emisión de factura',temRows,false)}
       ${section('💸 Anticipos del periodo',antRows,false)}
       ${sectionCustom('📋 Administración',adminTheadExtra,adminRows,false)}
@@ -2647,12 +2617,10 @@ function calcWBRRes(){
   }
 
   // ── CICLO DE FACTURACIÓN por operativa
-  let cicloRows='';
   ops.forEach(op=>{
     const ci=(rec.operativas||[]).indexOf(op);
     const v=ci>=0?avg(rec,'ef-dias-'+ci):null;
     const pArr=comps.map(c=>{const ciC=(c.rec.operativas||[]).indexOf(op);return ciC>=0?avg(c.rec,'ef-dias-'+ciC):null;});
-    cicloRows+=kpiRow(op+' — días cierre',v,pArr,false,'d');
   });
   if(!ops.length)cicloRows='<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin operativas</td></tr>';
 
@@ -2860,7 +2828,6 @@ function calcWBRRes(){
     <div style="display:flex;flex-direction:column;gap:14px">
       ${section('🧾 Facturación recibida',facRecRowsFull,false)}
       ${section('🧾 Facturación emitida',facEmiRows,false)}
-      ${section('🔄 Ciclo de Facturación',cicloRows,false)}
       ${section('⏱ Tiempo de emisión de factura',temRows,false)}
       ${section('💸 Anticipos del periodo',antRows,false)}
       ${sectionCustom('📋 Administración',adminTheadExtra,adminRows,false)}
