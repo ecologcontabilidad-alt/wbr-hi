@@ -1439,12 +1439,23 @@ function restoreRecord(rec){
   ['pf-tcf','pf-pfp'].forEach(k=>{
     set(k,rec[k]);set(k+'-fecha',rec[k+'-fecha']);set(k+'-st',rec[k+'-st']);set(k+'-com',rec[k+'-com']);
   });
-  // Restore operativas
+  // Restore operativas — fallback: detect from fc-name-X keys if rec.operativas missing
   addedOperativas=[];
   document.getElementById('fac-emi-body').innerHTML='';
   document.getElementById('efic-body').innerHTML='';
   document.getElementById('temision-body').innerHTML='';
-  (rec.operativas||[]).forEach((op,ci)=>{
+  let ops = rec.operativas;
+  if(!ops || !ops.length){
+    // Rebuild from fc-name-0, fc-name-1... keys in the record
+    ops=[];
+    for(let i=0;i<30;i++){
+      if(rec['fc-name-'+i]) ops.push(rec['fc-name-'+i]);
+      else break;
+    }
+    // If still empty, use config.operativas
+    if(!ops.length) ops = config.operativas||[];
+  }
+  ops.forEach((op,ci)=>{
     addedOperativas.push(op);
     addFacEmiBlock(op,ci);
     for(let i=1;i<=5;i++){
