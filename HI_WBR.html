@@ -1516,8 +1516,8 @@ function clearAll(){
   document.getElementById('admin-body').innerHTML='';
   document.getElementById('viajes-body').innerHTML='';
   document.getElementById('fac-emi-body').innerHTML='';
-  document.getElementById('efic-body').innerHTML='';
-  document.getElementById('temision-body').innerHTML='';
+  const _eb=document.getElementById('efic-body'); if(_eb)_eb.innerHTML='';
+  const _tb=document.getElementById('temision-body'); if(_tb)_tb.innerHTML='';
   counterAnt=0;counterViaje=0;counterAdmin=0;
   addedOperativas=[];
   ['pf-tcf','pf-pfp'].forEach(k=>{
