@@ -1275,12 +1275,7 @@ function addFacEmiBlock(op,idx){
 }
 
 function addEficBlock(op,idx){
-  // Ciclo de Facturación: una fila por operativa (días cierre)
-  const bodyEfic=document.getElementById('efic-body');
-  const trE=document.createElement('tr');
-  trE.id='efic-block-'+idx;
-  trE.innerHTML=`<td class="row-label" style="font-weight:600;color:var(--text)">${op}</td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-1" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-2" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-3" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-4" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-5" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="tot-td" id="ef-dias-avg-${idx}">—</td><td class="day-td"><input class="day-input" id="ef-dias-com-${idx}" type="text" placeholder="..." style="text-align:left;font-size:11px"></td>`;
-  bodyEfic.appendChild(trE);
+  // Ciclo de Facturación eliminado — solo tiempo de emisión
   // Tiempo de emisión: Revisión, Mensatrans, Envío, Holded
   const bodyTe=document.getElementById('temision-body');
   const divT=document.createElement('div');
