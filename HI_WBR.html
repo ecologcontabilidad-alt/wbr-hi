@@ -443,7 +443,7 @@ details.card[open] summary{border-bottom-color:var(--border);}
   </div>
 
   <!-- FACTURACIÓN EMITIDA POR OPERATIVA -->
-  <details class="dbr-block">
+  <details class="dbr-block" id="det-fac-emi">
     <summary class="dbr-summary">🧾 Facturación emitida <button class="btn-add" onclick="event.stopPropagation();openWbrOpModal()" style="margin-left:auto;font-size:11px;padding:3px 10px">+ Añadir operativa</button></summary>
     <div class="card">
       <div class="table-scroll"><table class="wbr-table" id="fac-emi-table">
@@ -473,7 +473,7 @@ details.card[open] summary{border-bottom-color:var(--border);}
   </details>
   <div class="dbr-sub-group">
     
-    <details class="dbr-block">
+    <details class="dbr-block" id="det-temision">
       <summary class="dbr-summary dbr-sub" onclick="setTimeout(()=>{addedOperativas.forEach((_,i)=>calcMinFac(i));},50)">↳ ⏱ Tiempo de emisión por operativa</summary>
       <div class="card">
 <div id="temision-body" style="display:flex;flex-direction:column;gap:0"></div>
@@ -840,6 +840,8 @@ details.card[open] summary{border-bottom-color:var(--border);}
 <div id="toast"></div>
 
 <script>
+var WBR_PASSWORD = "wbrfinanzasEcolog";
+
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
@@ -936,13 +938,8 @@ async function connectFirebase(){
     // Escuchar cambios posteriores en tiempo real
     db.ref('wbr').on('child_added',snap=>{
       if(!snap.exists())return;
-      wbrData[snap.key]=snap.val();
+      if(!wbrData[snap.key]) wbrData[snap.key]=snap.val(); // solo si no está ya
       populateWeekSelector();
-      // If this week is shown in selector but not yet loaded, load it
-      const sel=document.getElementById('wbr-week-sel');
-      if(sel && sel.value===snap.key && snap.key!==currentWeek){
-        loadWeek(snap.key);
-      }
     });
     db.ref('wbr').on('child_changed',snap=>{
       if(!snap.exists())return;
@@ -1148,11 +1145,6 @@ function populateWeekSelector(){
     opt.value=currentWeek;opt.textContent=currentWeek+' (sin guardar)';opt.selected=true;
     sel.insertBefore(opt,sel.options[1]);
   }
-  // Auto-load: if a week is selected but no data shown yet, load it
-  const selVal = sel.value;
-  if(selVal && wbrData[selVal] && selVal !== currentWeek){
-    loadWeek(selVal);
-  }
 }
 
 function loadWeek(key){
@@ -1251,10 +1243,20 @@ function confirmWbrOp(){
   }
   if(!op)return;
   if(!addedOperativas.includes(op)){
+    const _ni=addedOperativas.length;
     addedOperativas.push(op);
-    addFacEmiBlock(op,addedOperativas.length-1);
-    addEficBlock(op,addedOperativas.length-1);
-    }
+    addFacEmiBlock(op,_ni);
+    addEficBlock(op,_ni);
+    // Open sections and force show
+    const _df=document.getElementById('det-fac-emi');
+    const _dt=document.getElementById('det-temision');
+    if(_df)_df.open=true;
+    if(_dt)_dt.open=true;
+    const _fr=document.getElementById('fac-emi-block-'+_ni);
+    const _tb=document.getElementById('temision-block-'+_ni);
+    if(_fr)_fr.style.display='';
+    if(_tb)_tb.style.display='';
+  }
   closeWbrOpModal();
 }
 
@@ -1267,43 +1269,19 @@ function addFacEmiBlock(op,idx){
 }
 
 function addEficBlock(op,idx){
-  // Tiempo de emisión por operativa (Ciclo de facturación eliminado)
+  // Ciclo de Facturación: una fila por operativa (días cierre)
+  const bodyEfic=document.getElementById('efic-body');
+  const trE=document.createElement('tr');
+  trE.id='efic-block-'+idx;
+  trE.innerHTML=`<td class="row-label" style="font-weight:600;color:var(--text)">${op}</td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-1" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-2" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-3" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-4" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="day-td"><input class="day-input" id="ef-dias-${idx}-5" type="number" min="0" placeholder="0" oninput="calcAvgOp('ef-dias',${idx})"></td><td class="tot-td" id="ef-dias-avg-${idx}">—</td><td class="day-td"><input class="day-input" id="ef-dias-com-${idx}" type="text" placeholder="..." style="text-align:left;font-size:11px"></td>`;
+  bodyEfic.appendChild(trE);
+  // Tiempo de emisión: Revisión, Mensatrans, Envío, Holded
   const bodyTe=document.getElementById('temision-body');
-  if(!bodyTe) return;
   const divT=document.createElement('div');
   divT.className='table-scroll';divT.id='temision-block-'+idx;
   divT.innerHTML=`<table class="wbr-table" style="margin-bottom:1px"><thead><tr><th class="row-th" style="background:#2A2A2A">${op}</th><th class="day-th">Lun</th><th class="day-th">Mar</th><th class="day-th">Mié</th><th class="day-th">Jue</th><th class="day-th">Vie</th><th class="tot-th">Total</th></tr></thead><tbody><tr><td class="row-label">Revisión (min)</td><td class="day-td"><input class="day-input" id="te-rev-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-rev-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-rev',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-rev-tot-${idx}">—</td></tr><tr><td class="row-label">Mensatrans (min)</td><td class="day-td"><input class="day-input" id="te-men-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-men-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-men',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-men-tot-${idx}">—</td></tr><tr><td class="row-label">Envío (min)</td><td class="day-td"><input class="day-input" id="te-env-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-env-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-env',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-env-tot-${idx}">—</td></tr><tr><td class="row-label">Holded (min)</td><td class="day-td"><input class="day-input" id="te-hol-${idx}-1" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-2" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-3" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-4" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="day-td"><input class="day-input" id="te-hol-${idx}-5" type="number" min="0" placeholder="0" oninput="calcTotOp('te-hol',${idx});calcMinFac(${idx})"></td><td class="tot-td" id="te-hol-tot-${idx}">—</td></tr><tr style="background:var(--blue-bg)"><td class="row-label" style="font-weight:600;color:var(--blue)">⚡ min / factura</td><td class="tot-td" id="te-mpf-${idx}-1" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-2" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-3" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-4" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-${idx}-5" style="color:var(--blue)">—</td><td class="tot-td" id="te-mpf-avg-${idx}" style="color:var(--blue);font-weight:700">—</td></tr></tbody></table>`;
   bodyTe.appendChild(divT);
 }
-
-// Track which op indices come from loaded record (vs newly added)
-let loadedOpIndices = new Set();
-
-function hideEmptyOpRows(){
-  // Only hide rows that came from a loaded record AND have no data
-  addedOperativas.forEach((_,idx)=>{
-    // Never hide newly added rows (not from loaded record)
-    if(!loadedOpIndices.has(idx)) return;
-    let hasData = false;
-    for(let i=1;i<=5;i++){
-      const el = document.getElementById('fc-emi-'+idx+'-'+i);
-      if(el && el.value && el.value.trim()!=='' && el.value!=='0') { hasData=true; break; }
-    }
-    if(!hasData){
-      ['te-rev','te-men','te-env','te-hol'].forEach(p=>{
-        for(let i=1;i<=5;i++){
-          const el=document.getElementById(p+'-'+idx+'-'+i);
-          if(el&&el.value&&el.value.trim()!==''&&el.value!=='0'){hasData=true;}
-        }
-      });
-    }
-    const facRow = document.getElementById('fac-emi-block-'+idx);
-    const teBlock = document.getElementById('temision-block-'+idx);
-    if(facRow) facRow.style.display = hasData ? '' : 'none';
-    if(teBlock) teBlock.style.display = hasData ? '' : 'none';
-  });
-}
-window.hideEmptyOpRows = hideEmptyOpRows;
 
 function calcAvgOp(prefix,idx){
   let sum=0,cnt=0;
@@ -1488,26 +1466,14 @@ function restoreRecord(rec){
   ['pf-tcf','pf-pfp'].forEach(k=>{
     set(k,rec[k]);set(k+'-fecha',rec[k+'-fecha']);set(k+'-st',rec[k+'-st']);set(k+'-com',rec[k+'-com']);
   });
-  // Restore operativas — fallback: detect from fc-name-X keys if rec.operativas missing
+  // Restore operativas
   addedOperativas=[];
-  (document.getElementById('fac-emi-body')||{innerHTML:''}).innerHTML='';
-  (document.getElementById('efic-body')||{innerHTML:''}).innerHTML='';
-  (document.getElementById('temision-body')||{innerHTML:''}).innerHTML='';
-  let ops = rec.operativas;
-  if(!ops || !ops.length){
-    // Rebuild from fc-name-0, fc-name-1... keys in the record
-    ops=[];
-    for(let i=0;i<30;i++){
-      if(rec['fc-name-'+i]) ops.push(rec['fc-name-'+i]);
-      else break;
-    }
-    // If still empty, use config.operativas
-    if(!ops.length) ops = config.operativas||[];
-  }
-  ops.forEach((op,ci)=>{
+  document.getElementById('fac-emi-body').innerHTML='';
+  document.getElementById('efic-body').innerHTML='';
+  document.getElementById('temision-body').innerHTML='';
+  (rec.operativas||[]).forEach((op,ci)=>{
     addedOperativas.push(op);
-    addFacEmiBlock(op,ci);
-    addEficBlock(op,ci);
+    addFacEmiBlock(op,ci);addEficBlock(op,ci);
     for(let i=1;i<=5;i++){
       set('fc-emi-'+ci+'-'+i,rec['fc-emi-'+ci+'-'+i]);
       ['ef-dias','te-rev','te-men','te-env','te-hol'].forEach(p=>set(p+'-'+ci+'-'+i,rec[p+'-'+ci+'-'+i]));
@@ -1518,7 +1484,7 @@ function restoreRecord(rec){
     ['ef-dias'].forEach(p=>calcAvgOp(p,ci));['te-rev','te-men','te-env','te-hol'].forEach(p=>calcTotOp(p,ci));
   });
   // Anticipos
-  (document.getElementById('anticipo-body')||{innerHTML:''}).innerHTML='';counterAnt=0;
+  document.getElementById('anticipo-body').innerHTML='';counterAnt=0;
   (rec.anticipos||[]).forEach(a=>{
     addAnticipoRow();const idx=counterAnt-1;
     set('ant-name-'+idx,a.name);
@@ -1527,14 +1493,11 @@ function restoreRecord(rec){
     calcTotOp('ant',idx);
   });
   // Viajes
-  (document.getElementById('viajes-body')||{innerHTML:''}).innerHTML='';counterViaje=0;
+  document.getElementById('viajes-body').innerHTML='';counterViaje=0;
   (rec.viajes||[]).forEach(vj=>{addViajeRow();const idx=counterViaje-1;set('viaje-v-'+idx,vj.viajero);set('viaje-tipo-'+idx,vj.tipo);set('viaje-fecha-'+idx,vj.fecha);set('viaje-min-'+idx,vj.tiempo);set('viaje-st-'+idx,vj.estado);});
   // Admin
-  (document.getElementById('admin-body')||{innerHTML:''}).innerHTML='';counterAdmin=0;
+  document.getElementById('admin-body').innerHTML='';counterAdmin=0;
   (rec.admin||[]).forEach(a=>{addAdminRow();const idx=counterAdmin-1;set('admin-tipo-'+idx,a.tipo);set('admin-ent-'+idx,a.entidad);set('admin-fecha-'+idx,a.fecha);set('admin-dias-'+idx,a.dias);set('admin-prio-'+idx,a.prioridad);set('admin-st-'+idx,a.estado);});
-  // Mark all currently loaded op indices so hideEmptyOpRows knows which to hide
-  loadedOpIndices = new Set(addedOperativas.map((_,i)=>i));
-  setTimeout(hideEmptyOpRows, 150);
 }
 
 function clearAll(){
@@ -1543,9 +1506,12 @@ function clearAll(){
   document.querySelectorAll('.tot-td').forEach(el=>el.textContent='—');
   // Limpiar textareas de notas (nota...) — se cargan de la semana anterior si no se resetean
   document.querySelectorAll('textarea[id$="-com-1"],textarea[id$="-com-2"],textarea[id$="-com-3"],textarea[id$="-com-4"],textarea[id$="-com-5"]').forEach(el=>el.value='');
-  ['anticipo-body','admin-body','viajes-body','fac-emi-body','efic-body','temision-body'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.innerHTML='';
-  });
+  document.getElementById('anticipo-body').innerHTML='';
+  document.getElementById('admin-body').innerHTML='';
+  document.getElementById('viajes-body').innerHTML='';
+  document.getElementById('fac-emi-body').innerHTML='';
+  document.getElementById('efic-body').innerHTML='';
+  document.getElementById('temision-body').innerHTML='';
   counterAnt=0;counterViaje=0;counterAdmin=0;
   addedOperativas=[];
   ['pf-tcf','pf-pfp'].forEach(k=>{
@@ -1579,7 +1545,7 @@ function triggerAutosave(){
 // ═══════════════════════════════════════════════════════
 // GOOGLE SHEETS SYNC via Apps Script
 // ═══════════════════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzifYGUXspdLQkasGRfoAsDBefDr7GYqdb4SvU90PYYMcWULLqhAdJHYRDntWhuOZnUTQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCduMImpHoA2Y0qPuLYVg9UH1UyPsjHAF0mc2q8D3aJI_cClSHXDPZN2wDECLgvum70Q/exec';
 
 async function syncToSheets(){
   try{
@@ -1656,25 +1622,24 @@ function recToSheetRow(week, rec){
     days.forEach(v => row.push(v||''));
   });
 
-  // ── VIAJES: one row per viajero, only minutes for the matching day ──
-  // Get the 5 day dates for this week
-  const dayDates = [];
-  for(let i=1;i<=5;i++) dayDates.push(rec['day-date-'+i]||'');
+  // ── VIAJES ──
   (rec.viajes||[]).forEach(v=>{
     row.push(v.viajero||'');
-    // For each day L-V: put minutes only if viaje.fecha matches that day, else empty
-    dayDates.forEach(dd => {
-      if(v.fecha && dd && v.fecha === dd) {
-        // Extract numeric minutes from strings like "10min" or "10"
-        const mins = String(v.tiempo||'').replace(/[^0-9]/g,'');
-        row.push(mins||'');
-      } else {
-        row.push('');
-      }
-    });
+    row.push(v.tipo||'');
+    row.push(v.fecha||'');
+    row.push(v.tiempo||'');
+    row.push(v.estado||'');
   });
 
-  // Administración: no se exporta al Excel
+  // ── ADMINISTRACIÓN ──
+  (rec.admin||[]).forEach(a=>{
+    row.push(a.tipo||'');
+    row.push(a.entidad||'');
+    row.push(a.fecha||'');
+    row.push(a.dias||'');
+    row.push(a.prioridad||'');
+    row.push(a.estado||'');
+  });
 
   return row;
 }
@@ -1916,11 +1881,13 @@ function calcMBR(){
   }
 
   // ── CICLO DE FACTURACIÓN
+  let cicloRows='';
   ops.forEach(op=>{
     const ci=(rec.operativas||[]).indexOf(op);
     const ciP=prev?(prev.operativas||[]).indexOf(op):-1;
     const v=ci>=0?avg(rec,'ef-dias-'+ci):null;
     const p2=prev&&ciP>=0?avg(prev,'ef-dias-'+ciP):null;
+    cicloRows+=kpiRow(op+' — días cierre',v,p2,false,'d');
   });
   if(!ops.length)cicloRows='<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin operativas</td></tr>';
 
@@ -2058,6 +2025,7 @@ function calcMBR(){
     <div style="display:flex;flex-direction:column;gap:14px">
       ${section('🧾 Facturación recibida',facRecRowsFull,false)}
       ${section('🧾 Facturación emitida',facEmiRows,false)}
+      ${section('🔄 Ciclo de Facturación',cicloRows,false)}
       ${section('⏱ Tiempo de emisión de factura',temRows,false)}
       ${section('💸 Anticipos del periodo',antRows,false)}
       ${sectionCustom('📋 Administración',adminTheadExtra,adminRows,false)}
@@ -2678,10 +2646,12 @@ function calcWBRRes(){
   }
 
   // ── CICLO DE FACTURACIÓN por operativa
+  let cicloRows='';
   ops.forEach(op=>{
     const ci=(rec.operativas||[]).indexOf(op);
     const v=ci>=0?avg(rec,'ef-dias-'+ci):null;
     const pArr=comps.map(c=>{const ciC=(c.rec.operativas||[]).indexOf(op);return ciC>=0?avg(c.rec,'ef-dias-'+ciC):null;});
+    cicloRows+=kpiRow(op+' — días cierre',v,pArr,false,'d');
   });
   if(!ops.length)cicloRows='<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin operativas</td></tr>';
 
@@ -2889,6 +2859,7 @@ function calcWBRRes(){
     <div style="display:flex;flex-direction:column;gap:14px">
       ${section('🧾 Facturación recibida',facRecRowsFull,false)}
       ${section('🧾 Facturación emitida',facEmiRows,false)}
+      ${section('🔄 Ciclo de Facturación',cicloRows,false)}
       ${section('⏱ Tiempo de emisión de factura',temRows,false)}
       ${section('💸 Anticipos del periodo',antRows,false)}
       ${sectionCustom('📋 Administración',adminTheadExtra,adminRows,false)}
@@ -2912,7 +2883,6 @@ window.trLimpiarWord=trLimpiarWord;
 window.trCopiarPrompt=trCopiarPrompt;
 
 // ── ACCESO POR CONTRASEÑA ─────────────────────────────────────
-const WBR_PASSWORD = 'wbrfinanzasEcolog';
 
 function checkPassword(){
   const input=document.getElementById('login-pw');
@@ -2972,13 +2942,11 @@ function exportPDF(modo){
     show('wbr-res');
   } else if(modo==='mbr'){
     // NO llamar show('mbr') — dispara calcMBR/populateWeekMonth que resetea el selector
-    // Activar la sección visualmente sin recalcular
-    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-    const secMbr = document.getElementById('sec-mbr');
+    document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+    const secMbr=document.getElementById('sec-mbr');
     if(secMbr) secMbr.classList.add('active');
-    // Restaurar y recalcular con el mes correcto
-    if(_savedMonth && _mSel) _mSel.value = _savedMonth;
-    if(_savedComp  && _cSel) _cSel.value = _savedComp;
+    if(_savedMonth&&_mSel) _mSel.value=_savedMonth;
+    if(_savedComp&&_cSel)  _cSel.value=_savedComp;
     calcMBR();
   }
   if(modo==='wbr'){
@@ -3017,10 +2985,9 @@ function exportPDF(modo){
       if(document.getElementById('print-header-wbr'))document.getElementById('print-header-wbr').style.display='none';
       if(document.getElementById('print-header-mbr'))document.getElementById('print-header-mbr').style.display='none';
       document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('print-active');});
-      // Restaurar mes tras imprimir
-      if(modo==='mbr' && _savedMonth){
-        if(document.getElementById('mbr-month')) document.getElementById('mbr-month').value = _savedMonth;
-        if(_savedComp && document.getElementById('mbr-compare')) document.getElementById('mbr-compare').value = _savedComp;
+      if(modo==='mbr'&&_savedMonth){
+        if(document.getElementById('mbr-month')) document.getElementById('mbr-month').value=_savedMonth;
+        if(_savedComp&&document.getElementById('mbr-compare')) document.getElementById('mbr-compare').value=_savedComp;
         calcMBR();
       }
     },1200);
