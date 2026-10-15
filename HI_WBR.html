@@ -938,8 +938,11 @@ async function connectFirebase(){
     // Escuchar cambios posteriores en tiempo real
     db.ref('wbr').on('child_added',snap=>{
       if(!snap.exists())return;
-      if(!wbrData[snap.key]) wbrData[snap.key]=snap.val(); // solo si no está ya
+      wbrData[snap.key]=snap.val();
       populateWeekSelector();
+      // If this week is selected but not yet loaded, load it
+      const sel=document.getElementById('wbr-week-sel');
+      if(sel&&sel.value===snap.key&&snap.key!==currentWeek) loadWeek(snap.key);
     });
     db.ref('wbr').on('child_changed',snap=>{
       if(!snap.exists())return;
@@ -1145,6 +1148,9 @@ function populateWeekSelector(){
     opt.value=currentWeek;opt.textContent=currentWeek+' (sin guardar)';opt.selected=true;
     sel.insertBefore(opt,sel.options[1]);
   }
+  // Auto-load the selected week if data exists and not already loaded
+  const selVal=sel.value;
+  if(selVal&&wbrData[selVal]&&selVal!==currentWeek) loadWeek(selVal);
 }
 
 function loadWeek(key){
